@@ -126,3 +126,12 @@ footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 20p
 #learnedList { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
 #learnedList li { border-left: 4px solid var(--pc, var(--accent)); padding: 6px 10px; background: #ffffff08; border-radius: 8px; }
 .challenge { margin: 0; font-weight: 800; color: var(--lime); }
+
+/* Prompt.Up.Loudly brand + Vibo character */
+.logo { display: inline-flex; align-items: center; gap: 8px; font-size: 1.3rem; letter-spacing: -.01em; }
+.logo-vibo { width: 40px; height: 40px; }
+.logo .dot { color: var(--accent); }
+img.vibo-face { width: 48px; height: 48px; flex: none; }
+.hero-vibo { width: 96px; height: 96px; animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-3deg); } }
+@media (prefers-reduced-motion: reduce) { .hero-vibo { animation: none; } }

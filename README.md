@@ -1,4 +1,6 @@
-# Prompt Power-Up
+# Prompt.Up.Loudly
+
+Live: https://prompt.uploudly.com
 
 A prompt coach for teens learning to build apps with AI. Type a lazy idea like "make a quiz app". The coach **doesn't rewrite it**. It scores your prompt on 5 parts (Role, Context, Task, Rules, Check) and asks you short questions about the missing ones. Your answers become the powered-up prompt. Then both prompts are built by the same AI builder and shown side by side, so you can see what a better prompt does.
 
