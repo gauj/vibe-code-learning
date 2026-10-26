@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prompt.Up.Loudly</title>
   <link rel="icon" href="/vibo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=5">
 </head>
 <body>
   <header class="top">
-    <span class="logo"><img src="/vibo.svg" alt="" class="logo-vibo"><span>Prompt<span class="dot">.</span>Up<span class="dot">.</span><span class="lime">Loudly</span></span></span>
+    <span class="logo"><img src="/vibo.svg" alt="" class="logo-vibo" width="40" height="40"><span>Prompt<span class="dot">.</span>Up<span class="dot">.</span><span class="lime">Loudly</span></span></span>
     <span id="mode" class="mode" hidden>Offline demo mode: add a Gemini key for real builds</span>
   </header>
 
   <main>
     <section class="hero">
-      <img src="/vibo.svg" alt="Vibo, your prompt coach" class="hero-vibo">
+      <img src="/vibo.svg" alt="Vibo, your prompt coach" class="hero-vibo" width="96" height="96">
       <h1>Your prompt <span class="lime">is</span> your code.</h1>
       <p>Learn vibe coding on your own. Type a lazy idea. Vibo won't rewrite it. Vibo asks <b>you</b> a few questions, then builds both versions side by side.</p>
       <ol class="how">
@@ -39,7 +39,7 @@
     <!-- Step 2 -->
     <section class="card step" id="step2" hidden>
       <h2><span class="num">2</span> Power-up questions</h2>
-      <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face"><p id="praise" class="speech"></p></div>
+      <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p id="praise" class="speech"></p></div>
       <div class="qa-grid">
         <div id="questions"></div>
         <aside class="scorecard">
@@ -72,7 +72,7 @@
         </figure>
       </div>
       <div class="learned" id="learned" hidden>
-        <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face"><p class="speech">See the difference? Same builder. The only change was <b>your</b> prompt. Here's what you just learned:</p></div>
+        <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p class="speech">See the difference? Same builder. The only change was <b>your</b> prompt. Here's what you just learned:</p></div>
         <ul id="learnedList"></ul>
         <p id="challenge" class="challenge"></p>
       </div>
@@ -87,6 +87,6 @@
   </main>
 
   <footer>Built for Devpost "Build With AI: Basics". Generated apps run in a locked sandbox.</footer>
-  <script src="/app.js"></script>
+  <script src="/app.js?v=5"></script>
 </body>
 </html>
