@@ -1,4 +1,4 @@
-// Prompt Power-Up: tiny server that serves the page and keeps the Gemini key off the client.
+// Prompt Power-Up: tiny server that serves the page and keeps the AI key off the client.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -6,8 +6,12 @@ const path = require('path');
 loadEnv(path.join(__dirname, '.env'));
 
 const PORT = Number(process.env.PORT) || 3000;
-const API_KEY = process.env.GEMINI_API_KEY || '';
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+// Provider: any OpenAI-compatible API if LLM_BASE_URL + LLM_API_KEY are set, otherwise Gemini.
+const LLM_BASE_URL = (process.env.LLM_BASE_URL || '').replace(/\/+$/, '');
+const USE_OPENAI = Boolean(LLM_BASE_URL && process.env.LLM_API_KEY);
+const API_KEY = USE_OPENAI ? process.env.LLM_API_KEY : process.env.GEMINI_API_KEY || '';
+const MODEL = USE_OPENAI ? process.env.LLM_MODEL || '' : process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const DAILY_LIMIT = Number(process.env.DAILY_BUILDS) || 10; // power-ups per visitor per day (each = 2 builds)
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PARTS = ['role', 'context', 'task', 'rules', 'check'];
 
@@ -38,6 +42,41 @@ async function gemini(prompt, { json = false } = {}) {
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
   return (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
+}
+
+async function openaiCompatible(prompt, { json = false } = {}) {
+  const res = await fetch(`${LLM_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify({
+      model: MODEL,
+      temperature: 0.7,
+      messages: [{ role: 'user', content: prompt }],
+      ...(json ? { response_format: { type: 'json_object' } } : {}),
+    }),
+    signal: AbortSignal.timeout(90000),
+  });
+  if (!res.ok) throw new Error(`LLM ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+const ask = USE_OPENAI ? openaiCompatible : gemini;
+
+// Simple in-memory cap so a public key can't be run up by strangers.
+const usage = new Map();
+function allowRun(ip) {
+  const day = new Date().toISOString().slice(0, 10);
+  const key = `${day}|${ip}`;
+  if (usage.size > 5000) usage.clear();
+  const n = usage.get(key) || 0;
+  if (n >= DAILY_LIMIT * 3) return false; // 1 coach call + 2 builds per power-up
+  usage.set(key, n + 1);
+  return true;
+}
+
+function clientIp(req) {
+  return req.headers['cf-connecting-ip'] || String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress;
 }
 
 const COACH_PROMPT = (idea) => `You are Vibo, a friendly prompt coach for teens (13+) learning to build apps with AI.
@@ -71,7 +110,7 @@ Prompt:
 """${prompt}"""`;
 
 function cleanCoach(raw) {
-  const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  const data = typeof raw === 'string' ? JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)) : raw;
   const byKey = Object.fromEntries((data.parts || []).map((p) => [p.key, p]));
   return {
     praise: String(data.praise || '').slice(0, 200),
@@ -174,8 +213,9 @@ async function handleApi(req, res, route) {
     const idea = String(body.prompt || '').trim().slice(0, 300);
     if (!idea) return send(res, 400, { error: 'Type an idea first.' });
     if (offline) return send(res, 200, { offline, ...offlineCoach(idea) });
+    if (!allowRun(clientIp(req))) return send(res, 429, { error: "You've hit today's power-up limit. Come back tomorrow!" });
     try {
-      return send(res, 200, { offline, ...cleanCoach(await gemini(COACH_PROMPT(idea), { json: true })) });
+      return send(res, 200, { offline, ...cleanCoach(await ask(COACH_PROMPT(idea), { json: true })) });
     } catch (e) {
       console.error('coach:', e.message);
       return send(res, 200, { offline, fallback: true, ...offlineCoach(idea) });
@@ -189,8 +229,9 @@ async function handleApi(req, res, route) {
       await new Promise((r) => setTimeout(r, 1200));
       return send(res, 200, { offline, ...offlineBuild(prompt) });
     }
+    if (!allowRun(clientIp(req))) return send(res, 429, { error: "Today's build limit is reached. Come back tomorrow!" });
     try {
-      return send(res, 200, { offline, ...splitBuild(await gemini(BUILD_PROMPT(prompt))) });
+      return send(res, 200, { offline, ...splitBuild(await ask(BUILD_PROMPT(prompt))) });
     } catch (e) {
       console.error('build:', e.message);
       return send(res, 502, { error: "This one didn't build. Try again." });
@@ -215,5 +256,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Prompt Power-Up running at http://localhost:${PORT} (${API_KEY ? `Gemini ${MODEL}` : 'offline demo mode'})`);
+  console.log(`Prompt Power-Up running at http://localhost:${PORT} (${API_KEY ? `${USE_OPENAI ? LLM_BASE_URL : 'Gemini'} ${MODEL}` : 'offline demo mode'})`);
 });
