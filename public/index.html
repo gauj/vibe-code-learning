@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prompt Power-Up</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="top">
+    <span class="logo">⚡ Prompt Power-Up</span>
+    <span id="mode" class="mode" hidden>Offline demo mode: add a Gemini key for real builds</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Your prompt <span class="lime">is</span> your code.</h1>
+      <p>Type a lazy idea. Vibo won't rewrite it. Vibo asks <b>you</b> a few questions, then builds both versions side by side.</p>
+    </section>
+
+    <!-- Step 1 -->
+    <section class="card step" id="step1">
+      <h2><span class="num">1</span> Your idea</h2>
+      <div class="row">
+        <input id="idea" maxlength="300" placeholder="e.g. make a quiz app" autocomplete="off">
+        <button id="checkBtn" class="primary" disabled>Check my prompt 🔍</button>
+      </div>
+      <p class="hint">Start lazy. That's the point!</p>
+    </section>
+
+    <!-- Step 2 -->
+    <section class="card step" id="step2" hidden>
+      <h2><span class="num">2</span> Power-up questions</h2>
+      <p id="praise" class="praise"></p>
+      <div class="qa-grid">
+        <div id="questions"></div>
+        <aside class="scorecard">
+          <h3>Prompt power</h3>
+          <div class="meter"><div id="meterFill"></div></div>
+          <p id="meterLabel" class="meter-label"></p>
+          <ul id="parts"></ul>
+        </aside>
+      </div>
+      <div class="assembled">
+        <h3>Your powered-up prompt <small>(only your words)</small></h3>
+        <pre id="assembled"></pre>
+      </div>
+      <button id="powerBtn" class="primary big">Power up! ⚡ Build both apps</button>
+    </section>
+
+    <!-- Step 3 -->
+    <section class="card step" id="step3" hidden>
+      <h2><span class="num">3</span> Same builder, different prompt</h2>
+      <div class="compare">
+        <figure>
+          <figcaption>😴 Your prompt</figcaption>
+          <div class="frame" id="frameLazy"></div>
+          <p class="explain" id="explainLazy"></p>
+        </figure>
+        <figure>
+          <figcaption>⚡ Powered up</figcaption>
+          <div class="frame" id="framePower"></div>
+          <p class="explain" id="explainPower"></p>
+        </figure>
+      </div>
+      <div class="actions">
+        <button id="copyBtn" class="primary">📋 Copy my prompt</button>
+        <a class="btn" href="https://aistudio.google.com/" target="_blank" rel="noopener">Open Gemini ↗</a>
+        <button id="againBtn" class="btn">Try another idea</button>
+      </div>
+    </section>
+
+    <p id="error" class="error" hidden></p>
+  </main>
+
+  <footer>Built for Devpost "Build With AI: Basics". Generated apps run in a locked sandbox.</footer>
+  <script src="/app.js"></script>
+</body>
+</html>
