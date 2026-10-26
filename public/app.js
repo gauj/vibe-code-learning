@@ -158,11 +158,31 @@ function frameStatus(el, html, isErr) {
   el.innerHTML = `<div class="status${isErr ? ' err' : ''}">${html}</div>`;
 }
 
+// Runs first inside every preview: sandboxed frames can't use real storage (it throws and
+// crashes the app), so give them an in-memory stand-in, and show crashes instead of a blank box.
+const PREVIEW_SHIM = `<script>
+(function () {
+  function mem() { var d = {}; return { getItem: function (k) { return k in d ? d[k] : null; }, setItem: function (k, v) { d[k] = String(v); },
+    removeItem: function (k) { delete d[k]; }, clear: function () { d = {}; }, key: function (i) { return Object.keys(d)[i] || null; }, get length() { return Object.keys(d).length; } }; }
+  ['localStorage', 'sessionStorage'].forEach(function (n) {
+    try { window[n].length; } catch (e) { try { Object.defineProperty(window, n, { value: mem(), configurable: true }); } catch (e2) {} }
+  });
+  window.alert = function (m) { console.log(m); };
+  window.addEventListener('error', function (e) {
+    if (document.getElementById('__err')) return;
+    var b = document.createElement('div'); b.id = '__err';
+    b.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;padding:10px;border-radius:10px;background:#fee2e2;color:#991b1b;font:14px system-ui;z-index:99999';
+    b.textContent = '🐛 This app has a bug: ' + e.message + '. Try Power up again!';
+    (document.body || document.documentElement).appendChild(b);
+  });
+})();
+<\/script>`;
+
 function showApp(el, html) {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('sandbox', 'allow-scripts'); // no same-origin, no forms, no popups
   iframe.setAttribute('referrerpolicy', 'no-referrer');
-  iframe.srcdoc = html;
+  iframe.srcdoc = PREVIEW_SHIM + html;
   el.innerHTML = '';
   el.appendChild(iframe);
 }

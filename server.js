@@ -103,7 +103,8 @@ const BUILD_PROMPT = (prompt) => `You are an app builder. Build exactly what the
 Builder rules (same for every prompt):
 - Be LITERAL. Build only what the prompt actually says. Do not add features, content, styling, colours, themes or polish the prompt doesn't ask for. If the prompt is vague, make the simplest plain version (default browser styles, 1-2 items).
 - Inline all CSS and JavaScript. No external files, fonts, images, CDNs or network requests.
-- No forms that collect personal data. No alert() popups.
+- No forms that collect personal data. No alert() popups. Do not use localStorage, sessionStorage, cookies or IndexedDB (the app runs in a sandbox).
+- Show the app's content immediately on load: no start screens that need an image, font or network to appear.
 - Keep it under 250 lines.
 - Respond with the HTML file first, then a line containing only "---EXPLAIN---", then: if the prompt asks you to explain something, 1-2 short sentences answering it; if it does NOT ask for an explanation, write exactly "No explanation requested." and nothing else.
 
