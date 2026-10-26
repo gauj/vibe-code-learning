@@ -15,6 +15,12 @@ status: draft
 7. **Compare:** two previews appear side by side, "😴 Your prompt" and "⚡ Powered up", each with a one-line explanation underneath.
 8. **Keep it:** **Copy prompt** puts the powered-up prompt on the clipboard, and **Open Gemini** opens AI Studio in a new tab. **Try another idea** resets the page.
 
+### Self-guided learning (no teacher needed)
+- A three-step "how it works" strip under the headline.
+- Idea starter chips: quiz, game, pet tracker, study timer.
+- A "💡 Why?" tip on each question explaining what that part does.
+- After the builds, a "what you just learned" recap of the parts the teen added, plus one next challenge.
+
 ## Screens and Layout
 There's one page with three stacked steps, and only the current step is active:
 1. Your idea

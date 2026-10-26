@@ -115,3 +115,14 @@ footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 20p
   .scorecard { position: static; order: -1; }
   .frame { height: 440px; }
 }
+
+/* Self-guided extras: how-it-works strip, idea starters, why tips, learned recap */
+.how { list-style: none; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 0; margin: 18px 0 0; }
+.how li { background: #ffffff10; border: 1px solid #ffffff1f; border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: .9rem; }
+.how li span { margin-right: 6px; }
+#starters { margin-top: 8px; }
+.why { margin: 10px 0 0; font-size: .85rem; color: var(--muted); font-weight: 500; }
+.learned { margin-top: 20px; background: #0f1033; border-radius: 14px; padding: 16px; }
+#learnedList { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+#learnedList li { border-left: 4px solid var(--pc, var(--accent)); padding: 6px 10px; background: #ffffff08; border-radius: 8px; }
+.challenge { margin: 0; font-weight: 800; color: var(--lime); }

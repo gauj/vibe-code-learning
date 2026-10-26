@@ -15,7 +15,12 @@
   <main>
     <section class="hero">
       <h1>Your prompt <span class="lime">is</span> your code.</h1>
-      <p>Type a lazy idea. Vibo won't rewrite it. Vibo asks <b>you</b> a few questions, then builds both versions side by side.</p>
+      <p>Learn vibe coding on your own. Type a lazy idea. Vibo won't rewrite it. Vibo asks <b>you</b> a few questions, then builds both versions side by side.</p>
+      <ol class="how">
+        <li><span>✍️</span>Type a lazy idea</li>
+        <li><span>🤖</span>Answer Vibo's questions</li>
+        <li><span>⚡</span>See both apps side by side</li>
+      </ol>
     </section>
 
     <!-- Step 1 -->
@@ -25,7 +30,8 @@
         <input id="idea" maxlength="300" placeholder="e.g. make a quiz app" autocomplete="off">
         <button id="checkBtn" class="primary" disabled>Check my prompt 🔍</button>
       </div>
-      <p class="hint">Start lazy. That's the point!</p>
+      <p class="hint">Start lazy. That's the point! Stuck? Tap one:</p>
+      <div class="chips" id="starters"></div>
     </section>
 
     <!-- Step 2 -->
@@ -62,6 +68,11 @@
           <div class="frame" id="framePower"></div>
           <p class="explain" id="explainPower" hidden></p>
         </figure>
+      </div>
+      <div class="learned" id="learned" hidden>
+        <div class="vibo-says"><span class="vibo-face">🤖</span><p class="speech">See the difference? Same builder. The only change was <b>your</b> prompt. Here's what you just learned:</p></div>
+        <ul id="learnedList"></ul>
+        <p id="challenge" class="challenge"></p>
       </div>
       <div class="actions">
         <button id="copyBtn" class="primary">📋 Copy my prompt</button>

@@ -1,11 +1,13 @@
 // Prompt Power-Up: the page builds the final prompt itself, so the AI can never rewrite it.
+// `why` is the one-line lesson a teen sees while answering, so no teacher is needed.
 const PART_INFO = {
-  role: { label: 'Role', emoji: '🎭' },
-  context: { label: 'Context', emoji: '📦' },
-  task: { label: 'Task', emoji: '🎯' },
-  rules: { label: 'Rules', emoji: '📏' },
-  check: { label: 'Check', emoji: '💬' },
+  role: { label: 'Role', emoji: '🎭', why: 'Giving the AI a job makes it think like an expert.' },
+  context: { label: 'Context', emoji: '📦', why: 'Saying who it\'s for and the vibe stops the AI guessing.' },
+  task: { label: 'Task', emoji: '🎯', why: 'One clear job = an app that actually works.' },
+  rules: { label: 'Rules', emoji: '📏', why: 'Rules on look and limits turn a grey box into your style.' },
+  check: { label: 'Check', emoji: '💬', why: 'Asking the AI to explain helps you understand your own code.' },
 };
+const STARTERS = ['make a quiz app', 'make a game', 'make a pet tracker', 'make a study timer'];
 const $ = (id) => document.getElementById(id);
 
 let state = { idea: '', parts: [], answers: {} };
@@ -18,6 +20,15 @@ $('checkBtn').addEventListener('click', checkPrompt);
 $('powerBtn').addEventListener('click', buildBoth);
 $('copyBtn').addEventListener('click', copyPrompt);
 $('againBtn').addEventListener('click', reset);
+
+for (const s of STARTERS) {
+  const chip = document.createElement('button');
+  chip.className = 'chip';
+  chip.type = 'button';
+  chip.textContent = s;
+  chip.addEventListener('click', () => { $('idea').value = s; $('checkBtn').disabled = false; $('idea').focus(); });
+  $('starters').appendChild(chip);
+}
 
 async function post(url, body) {
   const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -68,8 +79,10 @@ function renderQuestions() {
       <div class="q-head">${info.emoji} ${info.label} · ${p.score === 0 ? 'missing' : 'vague'}</div>
       <p></p>
       <div class="lead-row"><span class="lead"></span><input maxlength="120" placeholder="your answer…"></div>
-      <div class="chips"></div>`;
+      <div class="chips"></div>
+      <p class="why"></p>`;
     div.querySelector('p').textContent = p.question;
+    div.querySelector('.why').textContent = `💡 Why? ${info.why}`;
     div.querySelector('.lead').textContent = p.lead;
     const input = div.querySelector('input');
     input.addEventListener('input', () => { state.answers[p.key] = input.value; update(); });
@@ -190,6 +203,7 @@ async function buildBoth() {
     buildOne(assemble(), $('framePower'), $('explainPower'), $('metaPower'), true),
   ]);
   if (!results.some(Boolean)) showError('Both builds failed. Check your connection and try again.');
+  else renderLearned();
   btn.disabled = false;
   btn.textContent = 'Power up again ⚡';
 }
@@ -204,7 +218,29 @@ async function copyPrompt() {
   setTimeout(() => { $('copyBtn').textContent = '📋 Copy my prompt'; }, 2500);
 }
 
+// Self-guided wrap-up: which parts the teen added, and one challenge to try next.
+function renderLearned() {
+  const added = state.parts.filter((p) => p.score < 2 && (state.answers[p.key] || '').trim());
+  const missing = state.parts.filter((p) => liveScore(p) < 2);
+  const list = $('learnedList');
+  list.innerHTML = '';
+  for (const p of added) {
+    const li = document.createElement('li');
+    li.className = p.key;
+    li.innerHTML = '<b></b> ';
+    li.querySelector('b').textContent = `${PART_INFO[p.key].emoji} You added ${PART_INFO[p.key].label}.`;
+    li.append(PART_INFO[p.key].why);
+    list.appendChild(li);
+  }
+  if (!added.length) list.innerHTML = '<li>Your prompt already had all 5 parts. Legend! 🏆</li>';
+  $('challenge').textContent = missing.length
+    ? `🎯 Next challenge: add a ${PART_INFO[missing[0].key].label} part and power up again.`
+    : '🎯 Next challenge: change one Rule (a new colour or vibe) and see how the app changes.';
+  $('learned').hidden = false;
+}
+
 function reset() {
+  $('learned').hidden = true;
   state = { idea: '', parts: [], answers: {} };
   $('idea').value = '';
   $('checkBtn').disabled = true;
