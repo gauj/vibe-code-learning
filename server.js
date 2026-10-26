@@ -6,8 +6,8 @@ const path = require('path');
 loadEnv(path.join(__dirname, '.env'));
 
 const PORT = Number(process.env.PORT) || 3000;
-// Provider: any OpenAI-compatible API if LLM_BASE_URL + LLM_API_KEY are set, otherwise Gemini.
-const LLM_BASE_URL = (process.env.LLM_BASE_URL || '').replace(/\/+$/, '');
+// Provider: an OpenAI-compatible API (CheaperInference by default) if LLM_API_KEY is set, otherwise Gemini.
+const LLM_BASE_URL = (process.env.LLM_BASE_URL || 'https://api.cheaperinference.com/v1').replace(/\/+$/, '');
 const USE_OPENAI = Boolean(LLM_BASE_URL && process.env.LLM_API_KEY);
 const API_KEY = USE_OPENAI ? process.env.LLM_API_KEY : process.env.GEMINI_API_KEY || '';
 const MODEL = USE_OPENAI ? process.env.LLM_MODEL || '' : process.env.GEMINI_MODEL || 'gemini-2.5-flash';
