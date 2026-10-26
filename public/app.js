@@ -37,7 +37,7 @@ async function checkPrompt() {
   try {
     const data = await post('/api/coach', { prompt: state.idea });
     state.parts = data.parts;
-    $('praise').textContent = data.praise ? `🌟 ${data.praise}` : '';
+    $('praise').textContent = `${data.praise || 'Nice start!'} Answer my questions and watch your prompt power up. 👇`;
     renderQuestions();
     $('step2').hidden = false;
     $('step3').hidden = true;
@@ -63,7 +63,7 @@ function renderQuestions() {
   for (const p of todo) {
     const info = PART_INFO[p.key];
     const div = document.createElement('div');
-    div.className = 'q';
+    div.className = `q ${p.key}`;
     div.innerHTML = `
       <div class="q-head">${info.emoji} ${info.label} · ${p.score === 0 ? 'missing' : 'vague'}</div>
       <p></p>
@@ -91,18 +91,24 @@ function liveScore(p) {
   return (state.answers[p.key] || '').trim().length >= 3 ? 2 : p.score;
 }
 
-function assemble() {
-  let text = state.idea.replace(/\s+$/, '');
-  if (!/[.!?]$/.test(text)) text += '.';
-  const lines = [text];
+// Each block is tagged with the part it fills, so the page can colour-code the prompt.
+function promptBlocks() {
+  const sentence = (t) => {
+    t = t.trim();
+    if (!/[.!?]$/.test(t)) t += '.';
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  };
+  const blocks = [{ part: 'idea', text: sentence(state.idea) }];
   for (const p of state.parts) {
     const a = (state.answers[p.key] || '').trim();
     if (!a || p.score === 2) continue;
-    let sentence = `${p.lead} ${a}`.trim();
-    if (!/[.!?]$/.test(sentence)) sentence += '.';
-    lines.push(sentence.charAt(0).toUpperCase() + sentence.slice(1));
+    blocks.push({ part: p.key, text: sentence(`${p.lead} ${a}`) });
   }
-  return lines.join('\n');
+  return blocks;
+}
+
+function assemble() {
+  return promptBlocks().map((b) => b.text).join('\n');
 }
 
 function update() {
@@ -115,10 +121,24 @@ function update() {
   state.parts.forEach((p, i) => {
     const info = PART_INFO[p.key];
     const li = document.createElement('li');
+    li.className = `${p.key}${scores[i] === 2 ? ' on' : ''}`;
     li.innerHTML = `<span>${scores[i] === 2 ? '✅' : scores[i] === 1 ? '🟡' : '⬜'} ${info.emoji} ${info.label}</span><span class="s">${scores[i]}/2</span>`;
     $('parts').appendChild(li);
   });
-  $('assembled').textContent = assemble();
+  const box = $('assembled');
+  box.innerHTML = '';
+  for (const b of promptBlocks()) {
+    const row = document.createElement('div');
+    row.className = `part ${b.part}`;
+    const label = document.createElement('span');
+    label.className = 'pl';
+    label.textContent = b.part === 'idea' ? '💡 Your idea' : `${PART_INFO[b.part].emoji} ${PART_INFO[b.part].label}`;
+    const text = document.createElement('span');
+    text.className = 'pt';
+    text.textContent = b.text;
+    row.append(label, text);
+    box.appendChild(row);
+  }
 }
 
 function frameStatus(el, html, isErr) {
@@ -134,13 +154,23 @@ function showApp(el, html) {
   el.appendChild(iframe);
 }
 
-async function buildOne(prompt, frameEl, explainEl) {
+async function buildOne(prompt, frameEl, explainEl, metaEl, isPowered) {
   frameStatus(frameEl, '<div>🔨 Building… usually 10–30 s<div class="shimmer"></div></div>');
   explainEl.textContent = '';
+  explainEl.hidden = true;
+  metaEl.textContent = '';
   try {
     const data = await post('/api/build', { prompt });
     showApp(frameEl, data.html);
-    explainEl.textContent = data.explain || '';
+    const lines = data.html.split('\n').length;
+    metaEl.textContent = `${lines} line${lines === 1 ? '' : 's'} of code`;
+    const explain = data.explain && !/^no explanation/i.test(data.explain) ? data.explain : '';
+    if (explain) {
+      explainEl.innerHTML = '<span class="eyebrow"></span><br>';
+      explainEl.querySelector('.eyebrow').textContent = isPowered ? 'Your Check part worked: the AI explains' : 'The AI explains';
+      explainEl.append(explain);
+      explainEl.hidden = false;
+    }
     return true;
   } catch (e) {
     frameStatus(frameEl, `😕 ${e.message}`, true);
@@ -156,8 +186,8 @@ async function buildBoth() {
   $('step3').hidden = false;
   $('step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
   const results = await Promise.all([
-    buildOne(state.idea, $('frameLazy'), $('explainLazy')),
-    buildOne(assemble(), $('framePower'), $('explainPower')),
+    buildOne(state.idea, $('frameLazy'), $('explainLazy'), $('metaLazy'), false),
+    buildOne(assemble(), $('framePower'), $('explainPower'), $('metaPower'), true),
   ]);
   if (!results.some(Boolean)) showError('Both builds failed. Check your connection and try again.');
   btn.disabled = false;

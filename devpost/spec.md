@@ -43,6 +43,18 @@ These CSS variables live on `:root`:
 
 Fonts are system UI, with rounded 16px cards and tap targets of at least 44px.
 
+Each prompt part has its own colour, used on the question cards, the scorecard and the colour-coded assembled prompt (the "prompt anatomy"):
+
+| Part | Colour |
+|---|---|
+| Role | purple |
+| Context | blue |
+| Task | pink |
+| Rules | green |
+| Check | yellow |
+
+Vibo, the robot mascot, speaks in a speech bubble. Each preview shows its line count. When the Check part makes the AI explain itself, that explanation is highlighted.
+
 ## Components
 ### server.js
 - Static file server for `public/`.

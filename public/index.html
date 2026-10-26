@@ -8,7 +8,7 @@
 </head>
 <body>
   <header class="top">
-    <span class="logo">⚡ Prompt Power-Up</span>
+    <span class="logo">🤖 Vibe <span class="lime">Prompt Power-Up</span></span>
     <span id="mode" class="mode" hidden>Offline demo mode: add a Gemini key for real builds</span>
   </header>
 
@@ -31,7 +31,7 @@
     <!-- Step 2 -->
     <section class="card step" id="step2" hidden>
       <h2><span class="num">2</span> Power-up questions</h2>
-      <p id="praise" class="praise"></p>
+      <div class="vibo-says"><span class="vibo-face">🤖</span><p id="praise" class="speech"></p></div>
       <div class="qa-grid">
         <div id="questions"></div>
         <aside class="scorecard">
@@ -43,7 +43,7 @@
       </div>
       <div class="assembled">
         <h3>Your powered-up prompt <small>(only your words)</small></h3>
-        <pre id="assembled"></pre>
+        <div id="assembled" class="anatomy"></div>
       </div>
       <button id="powerBtn" class="primary big">Power up! ⚡ Build both apps</button>
     </section>
@@ -53,14 +53,14 @@
       <h2><span class="num">3</span> Same builder, different prompt</h2>
       <div class="compare">
         <figure>
-          <figcaption>😴 Your prompt</figcaption>
+          <figcaption>😴 Your prompt <span class="meta" id="metaLazy"></span></figcaption>
           <div class="frame" id="frameLazy"></div>
-          <p class="explain" id="explainLazy"></p>
+          <p class="explain" id="explainLazy" hidden></p>
         </figure>
         <figure>
-          <figcaption>⚡ Powered up</figcaption>
+          <figcaption>⚡ Powered up <span class="meta" id="metaPower"></span></figcaption>
           <div class="frame" id="framePower"></div>
-          <p class="explain" id="explainPower"></p>
+          <p class="explain" id="explainPower" hidden></p>
         </figure>
       </div>
       <div class="actions">

@@ -7,6 +7,12 @@
   --accent: #8b5cf6;
   --lime: #a3e635;
   --red: #f87171;
+  --c-role: #7c4dff;
+  --c-context: #1cb0f6;
+  --c-task: #ff6fae;
+  --c-rules: #58cc02;
+  --c-check: #ffc800;
+  --c-idea: #b7b5e0;
   --radius: 16px;
 }
 * { box-sizing: border-box; }
@@ -49,9 +55,22 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .primary { background: linear-gradient(135deg, var(--accent), #6d28d9); }
 .big { width: 100%; margin-top: 18px; font-size: 1.15rem; min-height: 56px; }
 
-.praise { color: var(--lime); margin: 0 0 14px; font-weight: 600; }
+.vibo-says { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; }
+.vibo-face { font-size: 2rem; line-height: 1; }
+.speech { margin: 0; background: #ffffff12; border: 1px solid #ffffff22; border-radius: 4px 16px 16px 16px; padding: 10px 14px; font-weight: 600; }
+
+/* One colour per prompt part, used on questions, scorecard and the assembled prompt */
+.role { --pc: var(--c-role); } .context { --pc: var(--c-context); } .task { --pc: var(--c-task); }
+.rules { --pc: var(--c-rules); } .check { --pc: var(--c-check); } .idea { --pc: var(--c-idea); }
+.anatomy { display: grid; gap: 8px; }
+.part { display: flex; gap: 10px; align-items: baseline; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--pc); background: color-mix(in srgb, var(--pc) 14%, transparent); }
+.part .pl { flex: none; font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #0f1033; background: var(--pc); padding: 2px 8px; border-radius: 999px; }
+.part .pt { font-size: .95rem; }
+#parts li.on span:first-child { color: var(--pc); font-weight: 800; }
+.meta { float: right; font-size: .8rem; font-weight: 600; color: var(--muted); }
+.eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--lime); }
 .qa-grid { display: grid; grid-template-columns: 1fr 260px; gap: 18px; align-items: start; }
-.q { background: var(--card2); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 4px solid var(--accent); }
+.q { background: var(--card2); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 4px solid var(--pc, var(--accent)); }
 .q-head { display: flex; gap: 8px; align-items: center; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .q p { margin: 4px 0 10px; font-weight: 700; font-size: 1.05rem; }
 .lead-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -82,7 +101,7 @@ figcaption { font-weight: 800; margin-bottom: 8px; font-size: 1.05rem; }
 .frame .status.err { color: var(--red); }
 .shimmer { width: 70%; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #ffffff10, var(--accent), #ffffff10); background-size: 200% 100%; animation: sh 1.2s linear infinite; margin: 12px auto 0; }
 @keyframes sh { to { background-position: -200% 0; } }
-.explain { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
+.explain { color: var(--text); font-size: .9rem; margin: 10px 0 0; background: #ffffff10; border-radius: 12px; padding: 10px 12px; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 
 .thinking { color: var(--muted); }
