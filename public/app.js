@@ -14,7 +14,18 @@ let state = { idea: '', parts: [], answers: {} };
 
 fetch('/api/status').then((r) => r.json()).then((s) => { $('mode').hidden = !s.offline; }).catch(() => {});
 
-$('idea').addEventListener('input', () => { $('checkBtn').disabled = !$('idea').value.trim(); });
+// Live safety check: personal details are flagged as the student types and can never be sent.
+function guardField(text, msgEl) {
+  const g = Guard.check(text);
+  msgEl.textContent = g.ok ? '' : g.message;
+  msgEl.hidden = g.ok;
+  return g.ok;
+}
+
+$('idea').addEventListener('input', () => {
+  const safe = guardField($('idea').value, $('ideaGuard'));
+  $('checkBtn').disabled = !$('idea').value.trim() || !safe;
+});
 $('idea').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !$('checkBtn').disabled) $('checkBtn').click(); });
 $('checkBtn').addEventListener('click', checkPrompt);
 $('powerBtn').addEventListener('click', buildBoth);
@@ -26,7 +37,7 @@ for (const s of STARTERS) {
   chip.className = 'chip';
   chip.type = 'button';
   chip.textContent = s;
-  chip.addEventListener('click', () => { $('idea').value = s; $('checkBtn').disabled = false; $('idea').focus(); });
+  chip.addEventListener('click', () => { $('idea').value = s; $('idea').dispatchEvent(new Event('input')); $('idea').focus(); });
   $('starters').appendChild(chip);
 }
 
@@ -41,6 +52,7 @@ function showError(msg) { $('error').textContent = msg; $('error').hidden = !msg
 
 async function checkPrompt() {
   showError('');
+  if (!guardField($('idea').value, $('ideaGuard'))) return;
   state = { idea: $('idea').value.trim(), parts: [], answers: {} };
   const btn = $('checkBtn');
   btn.disabled = true;
@@ -138,6 +150,7 @@ function update() {
     li.innerHTML = `<span>${scores[i] === 2 ? '✅' : scores[i] === 1 ? '🟡' : '⬜'} ${info.emoji} ${info.label}</span><span class="s">${scores[i]}/2</span>`;
     $('parts').appendChild(li);
   });
+  $('powerBtn').disabled = !guardField(assemble(), $('answerGuard'));
   const box = $('assembled');
   box.innerHTML = '';
   for (const b of promptBlocks()) {
@@ -213,6 +226,7 @@ async function buildOne(prompt, frameEl, explainEl, metaEl, isPowered) {
 
 async function buildBoth() {
   showError('');
+  if (!guardField(assemble(), $('answerGuard'))) return;
   const btn = $('powerBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="dots">Building both apps</span>';
@@ -257,6 +271,7 @@ function renderLearned() {
     ? `🎯 Next challenge: add a ${PART_INFO[missing[0].key].label} part and power up again.`
     : '🎯 Next challenge: change one Rule (a new colour or vibe) and see how the app changes.';
   $('learned').hidden = false;
+  if (window.Progress) Progress.bump();
 }
 
 function reset() {

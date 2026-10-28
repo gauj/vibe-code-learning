@@ -4,89 +4,163 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prompt.Up.Loudly</title>
+  <meta name="description" content="Learn to write better AI prompts, on your own. For students 13+.">
+  <meta name="robots" content="noai, noimageai">
   <link rel="icon" href="/vibo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css?v=5">
+  <link rel="stylesheet" href="/styles.css?v=6">
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
   <header class="top">
     <span class="logo"><img src="/vibo.svg" alt="" class="logo-vibo" width="40" height="40"><span>Prompt<span class="dot">.</span>Up<span class="dot">.</span><span class="lime">Loudly</span></span></span>
-    <span id="mode" class="mode" hidden>Offline demo mode: add a Gemini key for real builds</span>
+    <span id="mode" class="mode" hidden>Offline demo mode</span>
+    <span class="badges" id="badgeStrip" aria-label="Your badges"></span>
   </header>
 
-  <main>
+  <main id="main">
     <section class="hero">
       <img src="/vibo.svg" alt="Vibo, your prompt coach" class="hero-vibo" width="96" height="96">
       <h1>Your prompt <span class="lime">is</span> your code.</h1>
-      <p>Learn vibe coding on your own. Type a lazy idea. Vibo won't rewrite it. Vibo asks <b>you</b> a few questions, then builds both versions side by side.</p>
+      <p>Learn to write great AI prompts, on your own. Vibo never rewrites your prompt. Vibo asks <b>you</b> the right questions.</p>
+      <p class="safe-note">🛡️ No sign-up. No personal info. Never type your name, school or contact details. <a href="/privacy.html">How we keep you safe</a></p>
+    </section>
+
+    <nav class="tabs" role="tablist" aria-label="Ways to practise">
+      <button role="tab" id="tab-power" aria-controls="panel-power" aria-selected="true">⚡ Power-Up</button>
+      <button role="tab" id="tab-quests" aria-controls="panel-quests" aria-selected="false">🗺️ Quests</button>
+      <button role="tab" id="tab-spot" aria-controls="panel-spot" aria-selected="false">🔍 Spot the gap</button>
+      <button role="tab" id="tab-progress" aria-controls="panel-progress" aria-selected="false">🏅 My progress</button>
+    </nav>
+
+    <!-- ===== Power-Up: lazy prompt → Vibo's questions → both apps side by side ===== -->
+    <div role="tabpanel" id="panel-power" aria-labelledby="tab-power">
       <ol class="how">
         <li><span>✍️</span>Type a lazy idea</li>
         <li><span>🤖</span>Answer Vibo's questions</li>
         <li><span>⚡</span>See both apps side by side</li>
       </ol>
-    </section>
 
-    <!-- Step 1 -->
-    <section class="card step" id="step1">
-      <h2><span class="num">1</span> Your idea</h2>
-      <div class="row">
-        <input id="idea" maxlength="300" placeholder="e.g. make a quiz app" autocomplete="off">
-        <button id="checkBtn" class="primary" disabled>Check my prompt 🔍</button>
-      </div>
-      <p class="hint">Start lazy. That's the point! Stuck? Tap one:</p>
-      <div class="chips" id="starters"></div>
-    </section>
+      <section class="card step" id="step1">
+        <h2><span class="num">1</span> Your idea</h2>
+        <div class="row">
+          <input id="idea" maxlength="300" placeholder="e.g. make a quiz app" autocomplete="off" aria-label="Your app idea">
+          <button id="checkBtn" class="primary" disabled>Check my prompt 🔍</button>
+        </div>
+        <p class="guard-msg" id="ideaGuard" role="alert" hidden></p>
+        <p class="hint">Start lazy. That's the point! Stuck? Tap one:</p>
+        <div class="chips" id="starters"></div>
+      </section>
 
-    <!-- Step 2 -->
-    <section class="card step" id="step2" hidden>
-      <h2><span class="num">2</span> Power-up questions</h2>
-      <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p id="praise" class="speech"></p></div>
-      <div class="qa-grid">
-        <div id="questions"></div>
-        <aside class="scorecard">
-          <h3>Prompt power</h3>
-          <div class="meter"><div id="meterFill"></div></div>
-          <p id="meterLabel" class="meter-label"></p>
-          <ul id="parts"></ul>
-        </aside>
-      </div>
-      <div class="assembled">
-        <h3>Your powered-up prompt <small>(only your words)</small></h3>
-        <div id="assembled" class="anatomy"></div>
-      </div>
-      <button id="powerBtn" class="primary big">Power up! ⚡ Build both apps</button>
-    </section>
+      <section class="card step" id="step2" hidden>
+        <h2><span class="num">2</span> Power-up questions</h2>
+        <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p id="praise" class="speech"></p></div>
+        <div class="qa-grid">
+          <div id="questions"></div>
+          <aside class="scorecard" aria-live="polite">
+            <h3>Prompt power</h3>
+            <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="10" id="meter"><div id="meterFill"></div></div>
+            <p id="meterLabel" class="meter-label"></p>
+            <ul id="parts"></ul>
+          </aside>
+        </div>
+        <div class="assembled">
+          <h3>Your powered-up prompt <small>(only your words)</small></h3>
+          <div id="assembled" class="anatomy"></div>
+        </div>
+        <p class="guard-msg" id="answerGuard" role="alert" hidden></p>
+        <button id="powerBtn" class="primary big">Power up! ⚡ Build both apps</button>
+      </section>
 
-    <!-- Step 3 -->
-    <section class="card step" id="step3" hidden>
-      <h2><span class="num">3</span> Same builder, different prompt</h2>
-      <div class="compare">
-        <figure>
-          <figcaption>😴 Your prompt <span class="meta" id="metaLazy"></span></figcaption>
-          <div class="frame" id="frameLazy"></div>
-          <p class="explain" id="explainLazy" hidden></p>
-        </figure>
-        <figure>
-          <figcaption>⚡ Powered up <span class="meta" id="metaPower"></span></figcaption>
-          <div class="frame" id="framePower"></div>
-          <p class="explain" id="explainPower" hidden></p>
-        </figure>
-      </div>
-      <div class="learned" id="learned" hidden>
-        <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p class="speech">See the difference? Same builder. The only change was <b>your</b> prompt. Here's what you just learned:</p></div>
-        <ul id="learnedList"></ul>
-        <p id="challenge" class="challenge"></p>
-      </div>
-      <div class="actions">
-        <button id="copyBtn" class="primary">📋 Copy my prompt</button>
-        <a class="btn" href="https://aistudio.google.com/" target="_blank" rel="noopener">Open Gemini ↗</a>
-        <button id="againBtn" class="btn">Try another idea</button>
-      </div>
-    </section>
+      <section class="card step" id="step3" hidden>
+        <h2><span class="num">3</span> Same builder, different prompt</h2>
+        <div class="compare">
+          <figure>
+            <figcaption>😴 Your prompt <span class="meta" id="metaLazy"></span></figcaption>
+            <div class="frame" id="frameLazy"></div>
+            <p class="explain" id="explainLazy" hidden></p>
+          </figure>
+          <figure>
+            <figcaption>⚡ Powered up <span class="meta" id="metaPower"></span></figcaption>
+            <div class="frame" id="framePower"></div>
+            <p class="explain" id="explainPower" hidden></p>
+          </figure>
+        </div>
+        <div class="learned" id="learned" hidden>
+          <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p class="speech">See the difference? Same builder. The only change was <b>your</b> prompt. Here's what you just learned:</p></div>
+          <ul id="learnedList"></ul>
+          <p id="challenge" class="challenge"></p>
+        </div>
+        <div class="actions">
+          <button id="copyBtn" class="primary">📋 Copy my prompt</button>
+          <a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer">Open Gemini ↗</a>
+          <button id="againBtn" class="btn">Try another idea</button>
+        </div>
+        <p class="hint">Using Gemini or another AI tool? Follow your school's rules, and only use tools allowed for your age.</p>
+      </section>
 
-    <p id="error" class="error" hidden></p>
+      <p id="error" class="error" role="alert" hidden></p>
+    </div>
+
+    <!-- ===== Quests: one level per prompt part, checked right here on your device ===== -->
+    <div role="tabpanel" id="panel-quests" aria-labelledby="tab-quests" hidden>
+      <section class="card">
+        <h2>🗺️ Prompt Quests</h2>
+        <p class="hint">Five prompt skills, one per level, then a boss. Vibo checks your prompt right here on your device: nothing is sent anywhere.</p>
+        <ol class="quest-map" id="questMap"></ol>
+      </section>
+      <section class="card quest" id="questCard">
+        <p class="eyebrow" id="questLevel"></p>
+        <h2 id="questTitle"></h2>
+        <div class="vibo-says"><img src="/vibo.svg" alt="Vibo" class="vibo-face" width="48" height="48"><p class="speech" id="questMission"></p></div>
+        <label for="questInput" class="label">Your prompt (edit it!)</label>
+        <textarea id="questInput" rows="4" maxlength="600"></textarea>
+        <p class="guard-msg" id="questGuard" role="alert" hidden></p>
+        <div class="actions">
+          <button id="questCheck" class="primary">Check my prompt ✅</button>
+          <button id="questHint" class="btn">💡 Hint</button>
+          <button id="questNext" class="btn" hidden>Next level →</button>
+        </div>
+        <div id="questResult" class="result" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <!-- ===== Spot the gap: find what's missing in someone else's prompt ===== -->
+    <div role="tabpanel" id="panel-spot" aria-labelledby="tab-spot" hidden>
+      <section class="card">
+        <h2>🔍 Spot the gap</h2>
+        <p class="hint">Read the prompt. Which parts are <b>missing</b>? Tap them, then check.</p>
+        <p class="eyebrow" id="spotCount"></p>
+        <blockquote class="spot-prompt" id="spotPrompt"></blockquote>
+        <div class="spot-parts" id="spotParts" role="group" aria-label="Missing parts"></div>
+        <div class="actions">
+          <button id="spotCheck" class="primary">Check ✅</button>
+          <button id="spotNext" class="btn" hidden>Next prompt →</button>
+        </div>
+        <div id="spotResult" class="result" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <!-- ===== Progress: saved only in this browser ===== -->
+    <div role="tabpanel" id="panel-progress" aria-labelledby="tab-progress" hidden>
+      <section class="card">
+        <h2>🏅 My progress</h2>
+        <p class="hint">Saved only in this browser on this device. It holds badges and counts, never your prompts. Nobody else can see it.</p>
+        <div class="stats" id="stats"></div>
+        <h3>Badges</h3>
+        <ul class="badge-list" id="badgeList"></ul>
+        <div class="actions">
+          <button id="clearProgress" class="btn">🗑️ Clear my progress</button>
+        </div>
+      </section>
+    </div>
   </main>
 
-  <footer>Built for Devpost "Build With AI: Basics". Generated apps run in a locked sandbox.</footer>
-  <script src="/app.js?v=5"></script>
+  <footer>
+    For students 13+. No accounts, ads, cookies or tracking. <a href="/privacy.html">Privacy &amp; safety</a> ·
+    Generated apps run in a locked sandbox.
+  </footer>
+  <script src="/guard.js?v=6"></script>
+  <script src="/app.js?v=6"></script>
+  <script src="/learn.js?v=6"></script>
 </body>
 </html>

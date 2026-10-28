@@ -6,6 +6,16 @@ A prompt coach for teens learning to build apps with AI. Type a lazy idea like "
 
 Built for Devpost's **Build With AI: Basics** hackathon with the Devpost Learn Skill Pack. The planning docs are in [`devpost/`](devpost/): [scope](devpost/scope.md), [PRD](devpost/prd.md) and [spec](devpost/spec.md).
 
+## School edition (branch `school-edition`)
+
+Four ways to practise prompting, built for students aged 13+ in the US and India:
+- **⚡ Power-Up**
+- **🗺️ Quests** (5 levels plus a boss)
+- **🔍 Spot the gap**
+- **🏅 My progress** (saved on the device only)
+
+There are no accounts and no personal data, and a guard blocks personal details before anything reaches the AI. See [docs/school-edition.md](docs/school-edition.md) and the in-app [privacy page](public/privacy.html).
+
 ## Run it
 
 You need Node.js 20 or later. There are no npm packages to install.

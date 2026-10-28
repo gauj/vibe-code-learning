@@ -2,6 +2,8 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const Guard = require('./public/guard.js');
 
 loadEnv(path.join(__dirname, '.env'));
 
@@ -12,6 +14,8 @@ const USE_OPENAI = Boolean(LLM_BASE_URL && process.env.LLM_API_KEY);
 const API_KEY = USE_OPENAI ? process.env.LLM_API_KEY : process.env.GEMINI_API_KEY || '';
 const MODEL = USE_OPENAI ? process.env.LLM_MODEL || '' : process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const DAILY_LIMIT = Number(process.env.DAILY_BUILDS) || 10; // power-ups per visitor per day (each = 2 builds)
+// Shown on the privacy page so students and parents know where prompts go.
+const PROVIDER_NAME = process.env.AI_PROVIDER_NAME || (USE_OPENAI ? new URL(LLM_BASE_URL).hostname : 'Google Gemini');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PARTS = ['role', 'context', 'task', 'rules', 'check'];
 
@@ -39,7 +43,7 @@ async function gemini(prompt, { json = false } = {}) {
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(90000),
   });
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`); // status only: error bodies can echo student text
   const data = await res.json();
   return (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
 }
@@ -56,18 +60,22 @@ async function openaiCompatible(prompt, { json = false } = {}) {
     }),
     signal: AbortSignal.timeout(90000),
   });
-  if (!res.ok) throw new Error(`LLM ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) throw new Error(`LLM HTTP ${res.status}`); // status only: error bodies can echo student text
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';
 }
 
 const ask = USE_OPENAI ? openaiCompatible : gemini;
 
-// Simple in-memory cap so a public key can't be run up by strangers.
+// Simple in-memory cap so a public key can't be run up by strangers. IPs are never stored:
+// only a one-way hash with a random salt that changes daily, kept in memory and never logged.
 const usage = new Map();
+let saltDay = '';
+let salt = '';
 function allowRun(ip) {
   const day = new Date().toISOString().slice(0, 10);
-  const key = `${day}|${ip}`;
+  if (day !== saltDay) { saltDay = day; salt = crypto.randomBytes(16).toString('hex'); usage.clear(); }
+  const key = crypto.createHash('sha256').update(salt + ip).digest('hex').slice(0, 16);
   if (usage.size > 5000) usage.clear();
   const n = usage.get(key) || 0;
   if (n >= DAILY_LIMIT * 3) return false; // 1 coach call + 2 builds per power-up
@@ -92,7 +100,8 @@ Score it on 5 parts, each 0 (missing), 1 (vague) or 2 (clear):
 For every part scoring 0 or 1, write ONE short question (max 12 words) that helps the student fill it in,
 a sentence "lead" the student's answer will be appended to (e.g. "You are", "It's for", "The app should", "Make it", "After the code,"),
 and 2-3 short example answers (max 8 words each) that fit THIS student's idea.
-Never ask for personal details (names, school, location, contact info). Do NOT rewrite the prompt.
+Never ask for personal details (names, school, location, contact info, age, birthday, photos). Do NOT rewrite the prompt.
+Keep everything school-appropriate: questions and examples must suit a classroom of 13-year-olds.
 Also give "praise": one short encouraging sentence about something in their prompt.
 
 Return JSON only:
@@ -106,6 +115,7 @@ Builder rules (same for every prompt):
 - No forms that collect personal data. No alert() popups. Do not use localStorage, sessionStorage, cookies or IndexedDB (the app runs in a sandbox).
 - Show the app's content immediately on load: no start screens that need an image, font or network to appear.
 - Keep it under 250 lines.
+- Keep all content school-appropriate for students aged 13+. If the prompt asks for anything unsafe, build a friendly page that says "Let's pick a school-friendly idea!" instead.
 - Respond with the HTML file first, then a line containing only "---EXPLAIN---", then: if the prompt asks you to explain something, 1-2 short sentences answering it; if it does NOT ask for an explanation, write exactly "No explanation requested." and nothing else.
 
 Prompt:
@@ -201,9 +211,27 @@ function readJson(req) {
   });
 }
 
+// No third-party scripts, fonts or trackers; previews inherit this policy, so generated apps
+// can't phone home either ('unsafe-inline' is for the generated single-file apps).
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; media-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  'Referrer-Policy': 'no-referrer',
+  'X-Content-Type-Options': 'nosniff',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+};
+
 function send(res, status, obj) {
-  res.writeHead(status, { 'Content-Type': 'application/json' });
+  res.writeHead(status, { ...SECURITY_HEADERS, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(obj));
+}
+
+// Second line of defence: the page checks first, but the server never forwards unsafe text.
+function blocked(res, text) {
+  const g = Guard.check(text);
+  if (g.ok) return false;
+  send(res, 422, { error: g.message, kind: g.kind });
+  return true;
 }
 
 async function handleApi(req, res, route) {
@@ -214,6 +242,7 @@ async function handleApi(req, res, route) {
   if (route === '/api/coach') {
     const idea = String(body.prompt || '').trim().slice(0, 300);
     if (!idea) return send(res, 400, { error: 'Type an idea first.' });
+    if (blocked(res, idea)) return;
     if (offline) return send(res, 200, { offline, ...offlineCoach(idea) });
     if (!allowRun(clientIp(req))) return send(res, 429, { error: "You've hit today's power-up limit. Come back tomorrow!" });
     try {
@@ -227,6 +256,7 @@ async function handleApi(req, res, route) {
   if (route === '/api/build') {
     const prompt = String(body.prompt || '').trim().slice(0, 2000);
     if (!prompt) return send(res, 400, { error: 'Empty prompt.' });
+    if (blocked(res, prompt)) return;
     if (offline) {
       await new Promise((r) => setTimeout(r, 1200));
       return send(res, 200, { offline, ...offlineBuild(prompt) });
@@ -246,13 +276,13 @@ async function handleApi(req, res, route) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (req.method === 'POST' && url.pathname.startsWith('/api/')) return handleApi(req, res, url.pathname);
-  if (req.method === 'GET' && url.pathname === '/api/status') return send(res, 200, { offline: !API_KEY, model: MODEL });
+  if (req.method === 'GET' && url.pathname === '/api/status') return send(res, 200, { offline: !API_KEY, model: MODEL, provider: API_KEY ? PROVIDER_NAME : null, contact: process.env.PRIVACY_CONTACT || null });
 
   const file = path.normalize(path.join(PUBLIC_DIR, url.pathname === '/' ? 'index.html' : url.pathname));
-  if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
+  if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403, SECURITY_HEADERS); return res.end(); }
   fs.readFile(file, (err, data) => {
-    if (err) { res.writeHead(404); return res.end('Not found'); }
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
+    if (err) { res.writeHead(404, SECURITY_HEADERS); return res.end('Not found'); }
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
     res.end(data);
   });
 });
